@@ -12,31 +12,35 @@ streamer = Streamer(bucket_name="", access_key="")
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM) ## Indicates which pin numbering configuration to use
 
-ledMouth = 17
-ledEye = 18
+ledEye = 17
+ledMouth = 18
 btnNose = 23
 
 GPIO.setup(ledMouth, GPIO.OUT)
 GPIO.setup(ledEye, GPIO.OUT)
 GPIO.setup(btnNose, GPIO.IN, GPIO.PUD_UP)
 
-led = GPIO.PWM(ledEye, 100)
+led = GPIO.PWM(ledMouth, 100)
 
 led.start(0)         
-pause_time = 0.01
+pause_time = 0.02
 state = 1
+
+# Blink Rate http://www.ncbi.nlm.nih.gov/pubmed/9399231
+# Blink once every 3.5 seconds
+blinkRate = 3.529
+counter = 0
+GPIO.output(ledEye,GPIO.HIGH)
 
 try:
     while True:
-        if (state == 1):
+        if (counter >= blinkRate):
             streamer.log("state", state)
-            GPIO.output(ledMouth,GPIO.HIGH)
-            state = 0
-        else:
-            streamer.log("state", state)
-            GPIO.output(ledMouth,GPIO.LOW)
-            state = 1
-             
+            GPIO.output(ledEye,GPIO.LOW)
+            sleep(.1)
+            GPIO.output(ledEye,GPIO.HIGH)
+            counter = 0
+        
         ## When state toggle button is pressed
         if ( GPIO.input(btnNose) == True ):
             streamer.log("button", "pressed")
@@ -52,8 +56,9 @@ try:
             sleep(2)
             streamer.log("horn", "blast")
             print("honk")
-
-        sleep(.3)
+        
+        counter = counter + .001
+        sleep(.001)
 
 except KeyboardInterrupt:
     led.stop()
