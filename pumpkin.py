@@ -3,6 +3,7 @@
 import RPi.GPIO as GPIO
 from time import sleep
 from ISStreamer.Streamer import Streamer
+import random
 
 ## Streamer constructor, this will create a bucket called Double Button LED
 ## you'll be able to see this name in your list of logs on initialstate.com
@@ -27,23 +28,41 @@ pause_time = 0.02
 state = 1
 
 # Blink Rate http://www.ncbi.nlm.nih.gov/pubmed/9399231
-# Blink once every 3.5 seconds
+# Blink once every 3.5 seconds (more or less)
 blinkRate = 3.529
 counter = 0
 GPIO.output(ledEye,GPIO.HIGH)
 
+def initialState(key, value):
+    streamer.log(key, value)
+
+def blink():
+    randomNumber = random.uniform(0,.5)
+    initialState("state",0)
+    GPIO.output(ledEye,GPIO.LOW)
+    sleep(randomNumber)
+    initialState("state",1)
+    GPIO.output(ledEye,GPIO.HIGH)
+
+    randomInt = random.uniform(1, 10)
+    if (randomInt >= 6):
+        randomNumber = random.uniform(0,.5)
+        initialState("state",0)
+        GPIO.output(ledEye,GPIO.LOW)
+        sleep(randomNumber)
+        initialState("state",1)
+        GPIO.output(ledEye,GPIO.HIGH)
+
 try:
     while True:
         if (counter >= blinkRate):
-            streamer.log("state", state)
-            GPIO.output(ledEye,GPIO.LOW)
-            sleep(.1)
-            GPIO.output(ledEye,GPIO.HIGH)
+            randomNumber = random.uniform(0,.2)
+            sleep(randomNumber)
+            blink()
             counter = 0
-        
+
         ## When state toggle button is pressed
         if ( GPIO.input(btnNose) == True ):
-            streamer.log("button", "pressed")
             GPIO.output(ledEye,GPIO.HIGH)
             for x in range(0,3):
                 for i in range(0,101):      # 101 because it stops when it finishes 100
@@ -54,8 +73,9 @@ try:
                     sleep(pause_time)
 
             sleep(2)
-            streamer.log("horn", "blast")
+            initialState("horn",1)
             print("honk")
+            initialState("horn",0)
         
         counter = counter + .001
         sleep(.001)
